@@ -9,11 +9,16 @@ from json import dumps
 from zlib import compress
 
 
-class UDPHandler(logging.Handler):
+class gelfHandler(logging.Handler):
 
     def __init__(self, **kw):
+        self.proto = kw.get('proto', 'UDP')
         self.host = kw.get('host', 'localhost')
-        self.port = kw.get('port', 12202)
+        self.port = kw.get('port', None)
+        if self.proto == 'UDP' and self.port is None:
+            self.port = 12202
+        if self.proto == 'TCP' and self.port is None:
+            self.port = 12201
         self.facility = kw.get('facility', None)
         self.fromHost = kw.get('fromHost', getfqdn())
         logging.Handler.__init__(self)
@@ -31,7 +36,11 @@ class UDPHandler(logging.Handler):
             raise('Could not determine level number')
 
     def emit(self, record):
-        self.sock = socket(AF_INET, SOCK_DGRAM)
+        if self.proto == 'UDP':
+            self.sock = socket(AF_INET, SOCK_DGRAM)
+        if self.proto == 'TCP':
+            self.sock = socket(AF_INET, SOCK_STREAM)
+            self.sock.connect((self.host, int(self.port)))
         recordDict = record.__dict__
         msgDict = {}
         msgDict['version'] = '1.1'
@@ -47,49 +56,10 @@ class UDPHandler(logging.Handler):
         if isinstance(recordDict['args'], dict):
             for k, v in recordDict['args'].iteritems():
                 msgDict[k] = v
-        zpdMsg = compress(dumps(msgDict))
-        self.sock.sendto(zpdMsg, (self.host, self.port))
-
-
-class TCPHandler(logging.Handler):
-
-    def __init__(self, **kw):
-        self.host = kw.get('host', 'localhost')
-        self.port = kw.get('port', 12201)
-        self.facility = kw.get('facility', None)
-        self.fromHost = kw.get('fromHost', getfqdn())
-        logging.Handler.__init__(self)
-
-    def getLevelNo(self, level):
-        levelsDict = {
-            'WARNING': 4,
-            'INFO': 6,
-            'DEBUG': 7,
-            'ERROR': 3,
-            }
-        try:
-            return(levelsDict[level])
-        except:
-            raise('Could not determine level number')
-
-    def emit(self, record):
-        self.sock = socket(AF_INET, SOCK_STREAM)
-        self.sock.connect((self.host, int(self.port)))
-        recordDict = record.__dict__
-        msgDict = {}
-        msgDict['version'] = '1.1'
-        msgDict['timestamp'] = recordDict['created']
-        msgDict['level'] = self.getLevelNo(recordDict['levelname'])
-        msgDict['long_message'] = recordDict['msg']
-        msgDict['short_message'] = recordDict['msg']
-        msgDict['host'] = self.fromHost
-        if self.facility is not None:
-            msgDict['facility'] = self.facility
-        elif self.facility is None:
-            msgDict['facility'] = recordDict['name']
-        if isinstance(recordDict['args'], dict):
-            for k, v in recordDict['args'].iteritems():
-                msgDict[k] = v
-        msg = dumps(msgDict) + '\0'
-        self.sock.sendall(msg)
-        self.sock.close()
+        if self.proto == 'UDP':
+            zpdMsg = compress(dumps(msgDict))
+            self.sock.sendto(zpdMsg, (self.host, self.port))
+        if self.proto == 'TCP':
+            msg = dumps(msgDict) + '\0'
+            self.sock.sendall(msg)
+            self.sock.close()
