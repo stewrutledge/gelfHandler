@@ -1,3 +1,8 @@
+"""
+Simple logging handler for sending gelf messages via TCP or UDP
+Author: Stewart Rutledge <stew.rutledge AT gmail.com>
+License: BSD I guess
+"""
 import logging
 from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM, getfqdn
 from json import dumps
