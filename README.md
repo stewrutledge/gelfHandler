@@ -11,7 +11,14 @@ Install via pip:
 ```python
 gHandler = gelfHandler(host='mylogserver.example.com',port=12202,proto='UDP')
 logger.addHandler(gHandler)
+logger.warn("Something went wrong")
 ```
+
+There are two additional arguments: 
+
+`fromHost='myhost'` which is the hostname field sent to graylog2 (default fqdn)
+
+`facility='superlogger'` which is sent as the facility field in graylog2 (default is the loggers name)
 
 The only protocols supports are UDP and TCP
 
