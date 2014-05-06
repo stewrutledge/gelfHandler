@@ -4,6 +4,10 @@ gelfHandler is a basic logging handler for sending to a graylog2 instance via UD
 
 ## Basic usage
 
+Install via pip:
+
+`pip install gelfHandler`
+
 ```python
 gHandler = gelfHandler(host='mylogserver.example.com',port=12202,proto='UDP')
 logger.addHandler(gHandler)
