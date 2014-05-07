@@ -15,6 +15,7 @@ class handler(logging.Handler):
         self.proto = kw.get('proto', 'UDP')
         self.host = kw.get('host', 'localhost')
         self.port = kw.get('port', None)
+        self.fullInfo = kw.get('fullInfo', False)
         if self.proto == 'UDP' and self.port is None:
             self.port = 12202
         if self.proto == 'TCP' and self.port is None:
@@ -49,12 +50,17 @@ class handler(logging.Handler):
         msgDict['long_message'] = recordDict['msg']
         msgDict['short_message'] = recordDict['msg']
         msgDict['host'] = self.fromHost
+	if fullInfo is True:
+            msgDict['pid'] = recordDict['process']
+            msgDict['processName'] = recordDict['processName']
+            msgDict['funcName'] = recordDict['funcName']
         if self.facility is not None:
             msgDict['facility'] = self.facility
         elif self.facility is None:
             msgDict['facility'] = recordDict['name']
-        if isinstance(recordDict['args'], dict):
-            for k, v in recordDict['args'].iteritems():
+        extra_props = recordDict.get('args').get('extra_props', None)
+        if isinstance(extra_props, dict):
+            for k, v in extra_props.iteritems():
                 msgDict[k] = v
         if self.proto == 'UDP':
             zpdMsg = compress(dumps(msgDict))
