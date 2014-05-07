@@ -24,10 +24,11 @@ There are three additional arguments:
 
 The only protocols supports are UDP and TCP
 
-Support for additional fields is available if you send an arg as a dict with {'extra_props'} as the first key:
+To send additional fields to graylog2, use the keyword extra and send a dict starting with `{'gelfProps':`
+
 
 ```python
-    logger.warn('DANGER DANGER',{'extra_props':{'name':'W. Robinsson', 'planet':'Unkown'}})
+    logger.warn('DANGER DANGER',extra={'gelfProps':{'name':'W. Robinsson', 'planet':'Unkown'}})
 ```
 
 ## Fallbacks
@@ -36,7 +37,7 @@ There are currently a number of things that need to be done:
 
 * ~~Make the manner in which an extra dict is presented more deterministic, that is with a specific argument rather than taking over the whole argument argument.~~
 * More error checking (for example make it clear that TCP and UDP are needed)
-* Compress TCP logging (currently only UDP is compressed using zlib)
+* ~~Compress TCP logging (currently only UDP is compressed using zlib)~~
 * ~~Allow for an option to create full dumps from the message (essentially mapping the whole dictionary presented in a normal log message)~~
 
 
