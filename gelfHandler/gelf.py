@@ -36,7 +36,7 @@ class handler(logging.Handler):
         except:
             raise('Could not determine level number')
 
-    def emit(self, record):
+    def emit(self, record, **kwargs):
         if self.proto == 'UDP':
             self.sock = socket(AF_INET, SOCK_DGRAM)
         if self.proto == 'TCP':
@@ -50,7 +50,7 @@ class handler(logging.Handler):
         msgDict['long_message'] = recordDict['msg']
         msgDict['short_message'] = recordDict['msg']
         msgDict['host'] = self.fromHost
-	if fullInfo is True:
+        if self.fullInfo is True:
             msgDict['pid'] = recordDict['process']
             msgDict['processName'] = recordDict['processName']
             msgDict['funcName'] = recordDict['funcName']
@@ -58,7 +58,7 @@ class handler(logging.Handler):
             msgDict['facility'] = self.facility
         elif self.facility is None:
             msgDict['facility'] = recordDict['name']
-        extra_props = recordDict.get('args').get('extra_props', None)
+        extra_props = recordDict.get('gelfProps', None)
         if isinstance(extra_props, dict):
             for k, v in extra_props.iteritems():
                 msgDict[k] = v
@@ -66,6 +66,9 @@ class handler(logging.Handler):
             zpdMsg = compress(dumps(msgDict))
             self.sock.sendto(zpdMsg, (self.host, self.port))
         if self.proto == 'TCP':
-            msg = dumps(msgDict) + '\0'
-            self.sock.sendall(msg)
-            self.sock.close()
+            msg = compress(dumps(msgDict)) + '\0'
+            try:
+                self.sock.sendall(msg)
+                self.sock.close()
+            except Exception as e:
+                raise('Could not send message via TCP: %s' % e)
