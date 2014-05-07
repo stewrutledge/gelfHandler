@@ -14,27 +14,29 @@ logger.addHandler(gHandler)
 logger.warn("Something went wrong")
 ```
 
-There are two additional arguments: 
+There are three additional arguments: 
 
 `fromHost='myhost'` which is the hostname field sent to graylog2 (default fqdn)
 
 `facility='superlogger'` which is sent as the facility field in graylog2 (default is the loggers name)
 
+`fullInfo=True` which sends the module the message came in, the pid of the process and the process name with the message
+
 The only protocols supports are UDP and TCP
 
-Support for additional fields is available if you send an arg as a dict:
+Support for additional fields is available if you send an arg as a dict with {'extra_props'} as the first key:
 
 ```python
-    logger.warn('DANGER DANGER',{'name':'W. Robinsson'})
+    logger.warn('DANGER DANGER',{'extra_props':{'name':'W. Robinsson', 'planet':'Unkown'}})
 ```
 
 ## Fallbacks
 
 There are currently a number of things that need to be done:
 
-* Make the manner in which an extra dict is presented more deterministic, that is with a specific argument rather than taking over the whole argument argument.
+* ~~Make the manner in which an extra dict is presented more deterministic, that is with a specific argument rather than taking over the whole argument argument.~~
 * More error checking (for example make it clear that TCP and UDP are needed)
 * Compress TCP logging (currently only UDP is compressed using zlib)
-* Allow for an option to create full dumps from the message (essentially mapping the whole dictionary presented in a normal log message)
+* ~~Allow for an option to create full dumps from the message (essentially mapping the whole dictionary presented in a normal log message)~~
 
 
