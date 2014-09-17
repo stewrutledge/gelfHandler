@@ -9,6 +9,8 @@ Install via pip:
 `pip install gelfHandler`
 
 ```python
+from gelfHandler import gelfHandler
+
 gHandler = gelfHandler(host='mylogserver.example.com',port=12202,proto='UDP')
 logger.addHandler(gHandler)
 logger.warn("Something went wrong")

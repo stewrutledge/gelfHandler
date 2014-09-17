@@ -9,7 +9,7 @@ Basic usage
 
 Usage is pretty much like any handler::
 
-
+    from gelfHandler import gelfHandler
     gHandler = gelfHandler(host='mylogserver.example.com',port=12202,proto='UDP')
     logger.addHandler(gHandler)
 
