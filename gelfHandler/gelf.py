@@ -92,7 +92,7 @@ class handler(logging.Handler):
             zpdMsg = compress(dumps(msgDict))
             self.sock.sendto(zpdMsg, (self.host, self.port))
         if self.proto == 'TCP':
-            msg = compress(dumps(msgDict)) + '\0'
+            msg = dumps(msgDict) + '\0'
             try:
                 self.sendOverTCP(msg)
             except IOError:
