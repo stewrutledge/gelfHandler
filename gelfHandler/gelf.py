@@ -5,6 +5,7 @@ License: BSD I guess
 """
 import logging
 from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM, getfqdn
+from ssl import *
 from json import dumps
 from zlib import compress
 
@@ -16,13 +17,31 @@ class handler(logging.Handler):
         self.host = kw.get('host', 'localhost')
         self.port = kw.get('port', None)
         self.fullInfo = kw.get('fullInfo', False)
-        if self.proto == 'UDP' and self.port is None:
-            self.port = 12202
-        if self.proto == 'TCP' and self.port is None:
-            self.port = 12201
         self.facility = kw.get('facility', None)
         self.fromHost = kw.get('fromHost', getfqdn())
+        self.tls = kw.get('tls', False)
+        if self.proto == 'UDP':
+            self.connectUDPSocket()
+        if self.proto == 'TCP':
+            self.connectTCPSocket()
         logging.Handler.__init__(self)
+
+    def connectUDPSocket(self):
+        if self.port is None:
+            self.port = 12202
+        self.sock = socket(AF_INET, SOCK_DGRAM)
+
+    def connectTCPSocket(self):
+        print "connecting via tcp" # DEBUG
+        if self.port is None:
+            self.port = 12201
+        self.sock = socket(AF_INET, SOCK_STREAM)
+        if self.tls:
+            self.sock = wrap_socket(self.sock, ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE)
+        try:
+            self.sock.connect((self.host, int(self.port)))
+        except IOError, e:
+            raise RuntimeError('Could not connect via TCP: %s' % e)
 
     def getLevelNo(self, level):
         levelsDict = {
@@ -36,12 +55,7 @@ class handler(logging.Handler):
         except:
             raise('Could not determine level number')
 
-    def emit(self, record, **kwargs):
-        if self.proto == 'UDP':
-            self.sock = socket(AF_INET, SOCK_DGRAM)
-        if self.proto == 'TCP':
-            self.sock = socket(AF_INET, SOCK_STREAM)
-            self.sock.connect((self.host, int(self.port)))
+    def buildMessage(self, record, **kwargs):
         recordDict = record.__dict__
         msgDict = {}
         msgDict['version'] = '1.1'
@@ -62,13 +76,34 @@ class handler(logging.Handler):
         if isinstance(extra_props, dict):
             for k, v in extra_props.iteritems():
                 msgDict[k] = v
+        return msgDict
+
+    def sendOverTCP(self, msg):
+        totalsent = 0
+        while totalsent < len(msg):
+            sent = self.sock.send(msg[totalsent:])
+            if sent == 0:
+                raise IOError("socket connection broken")
+            totalsent = totalsent + sent
+
+    def emit(self, record, **kwargs):
+        msgDict = self.buildMessage(record, **kwargs)
         if self.proto == 'UDP':
             zpdMsg = compress(dumps(msgDict))
             self.sock.sendto(zpdMsg, (self.host, self.port))
         if self.proto == 'TCP':
-            msg = compress(dumps(msgDict)) + '\0'
+            msg = dumps(msgDict) + '\0'
             try:
-                self.sock.sendall(msg)
-                self.sock.close()
-            except Exception as e:
-                raise('Could not send message via TCP: %s' % e)
+                self.sendOverTCP(msg)
+            except IOError:
+                try:
+                    self.sock.close()
+                    self.connectTCPSocket()
+                    self.sendOverTCP(msg)
+                except IOError:
+                    raise RuntimeError('Could not connect via TCP: %s' % e)
+
+    def close(self):
+        print "in close!" # DEBUG
+        if self.proto == 'TCP':
+            self.sock.close()
