@@ -32,7 +32,6 @@ class handler(logging.Handler):
         self.sock = socket(AF_INET, SOCK_DGRAM)
 
     def connectTCPSocket(self):
-        print "connecting via tcp" # DEBUG
         if self.port is None:
             self.port = 12201
         self.sock = socket(AF_INET, SOCK_STREAM)
@@ -78,6 +77,13 @@ class handler(logging.Handler):
                 msgDict[k] = v
         return msgDict
 
+    def formatMessage(self, msgDict):
+        if self.proto == 'UDP':
+            msg = compress(dumps(msgDict))
+        if self.proto == 'TCP':
+            msg = dumps(msgDict) + '\0'
+        return msg
+
     def sendOverTCP(self, msg):
         totalsent = 0
         while totalsent < len(msg):
@@ -87,12 +93,16 @@ class handler(logging.Handler):
             totalsent = totalsent + sent
 
     def emit(self, record, **kwargs):
-        msgDict = self.buildMessage(record, **kwargs)
+        try:
+            msgDict = self.buildMessage(record, **kwargs)
+            msg = self.formatMessage(msgDict)
+        except UnicodeEncodeError, e:
+            print "%s in %s" % (e, msgDict)
+
         if self.proto == 'UDP':
-            zpdMsg = compress(dumps(msgDict))
-            self.sock.sendto(zpdMsg, (self.host, self.port))
+            self.sock.sendto(msg, (self.host, self.port))
+
         if self.proto == 'TCP':
-            msg = dumps(msgDict) + '\0'
             try:
                 self.sendOverTCP(msg)
             except IOError:
@@ -104,6 +114,5 @@ class handler(logging.Handler):
                     raise RuntimeError('Could not connect via TCP: %s' % e)
 
     def close(self):
-        print "in close!" # DEBUG
         if self.proto == 'TCP':
             self.sock.close()
