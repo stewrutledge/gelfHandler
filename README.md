@@ -16,13 +16,15 @@ logger.addHandler(gHandler)
 logger.warn("Something went wrong")
 ```
 
-There are three additional arguments: 
+There are four additional arguments:
 
 `fromHost='myhost'` which is the hostname field sent to graylog2 (default fqdn)
 
 `facility='superlogger'` which is sent as the facility field in graylog2 (default is the loggers name)
 
 `fullInfo=True` which sends the module the message came in, the pid of the process and the process name with the message
+
+`tls=False` which enables TLS (ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE) for TCP connections
 
 The only protocols supports are UDP and TCP
 
