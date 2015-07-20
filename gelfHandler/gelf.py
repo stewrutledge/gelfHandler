@@ -48,6 +48,7 @@ class handler(logging.Handler):
             'INFO': 6,
             'DEBUG': 7,
             'ERROR': 3,
+            'CRITICAL': 9
             }
         try:
             return(levelsDict[level])
