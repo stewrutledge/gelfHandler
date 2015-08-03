@@ -20,6 +20,7 @@ class handler(logging.Handler):
         self.facility = kw.get('facility', None)
         self.fromHost = kw.get('fromHost', getfqdn())
         self.tls = kw.get('tls', False)
+        self.application = kw.get('application', None)
         if self.proto == 'UDP':
             self.connectUDPSocket()
         if self.proto == 'TCP':
@@ -48,6 +49,7 @@ class handler(logging.Handler):
             'INFO': 6,
             'DEBUG': 7,
             'ERROR': 3,
+            'CRITICAL': 9
             }
         try:
             return(levelsDict[level])
@@ -63,6 +65,8 @@ class handler(logging.Handler):
         msgDict['long_message'] = recordDict['msg']
         msgDict['short_message'] = recordDict['msg']
         msgDict['host'] = self.fromHost
+        if self.application:
+            msgDict['application'] = recordDict['application']
         if self.fullInfo is True:
             msgDict['pid'] = recordDict['process']
             msgDict['processName'] = recordDict['processName']
