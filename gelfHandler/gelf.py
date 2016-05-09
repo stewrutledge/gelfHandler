@@ -5,7 +5,7 @@ License: BSD I guess
 """
 import logging
 from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM, getfqdn
-from ssl import *
+import ssl
 from json import dumps
 from zlib import compress
 
@@ -32,15 +32,18 @@ class handler(logging.Handler):
         self.sock = socket(AF_INET, SOCK_DGRAM)
 
     def connectTCPSocket(self):
-        print "connecting via tcp" # DEBUG
         if self.port is None:
             self.port = 12201
         self.sock = socket(AF_INET, SOCK_STREAM)
         if self.tls:
-            self.sock = wrap_socket(self.sock, ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE)
+            self.sock = ssl.wrap_socket(
+                self.sock,
+                ssl_version=ssl.PROTOCOL_TLSv1,
+                cert_reqs=ssl.CERT_NONE
+            )
         try:
             self.sock.connect((self.host, int(self.port)))
-        except IOError, e:
+        except IOError as e:
             raise RuntimeError('Could not connect via TCP: %s' % e)
 
     def getLevelNo(self, level):
@@ -49,7 +52,7 @@ class handler(logging.Handler):
             'INFO': 6,
             'DEBUG': 7,
             'ERROR': 3,
-            }
+        }
         try:
             return(levelsDict[level])
         except:
@@ -100,10 +103,9 @@ class handler(logging.Handler):
                     self.sock.close()
                     self.connectTCPSocket()
                     self.sendOverTCP(msg)
-                except IOError:
+                except IOError as e:
                     raise RuntimeError('Could not connect via TCP: %s' % e)
 
     def close(self):
-        print "in close!" # DEBUG
         if self.proto == 'TCP':
             self.sock.close()
