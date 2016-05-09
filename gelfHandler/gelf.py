@@ -77,7 +77,7 @@ class handler(logging.Handler):
             msgDict['facility'] = recordDict['name']
         extra_props = recordDict.get('gelfProps', None)
         if isinstance(extra_props, dict):
-            for k, v in extra_props.iteritems():
+            for k, v in extra_props.items():
                 msgDict[k] = v
         return msgDict
 
