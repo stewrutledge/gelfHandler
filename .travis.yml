@@ -9,4 +9,7 @@ python:
   - "pypy"
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install mock; fi
-script: python -m unittest tests.test_gelfHandler
+  - pip install coverage
+script: coverage run --source=gelfHandler -m unittest tests.test_gelfHandler
+after_success:
+    coveralls
