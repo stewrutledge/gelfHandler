@@ -1,3 +1,3 @@
-from .gelf import handler
+from gelfHandler.gelf import GelfHandler
 
-gelfHandler = handler
+GelfHandler = GelfHandler
