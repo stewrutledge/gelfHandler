@@ -7,3 +7,6 @@ python:
   - "3.5"
   - "pypy3"
   - "pypy"
+install:
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install mock; fi
+script: python -m unittest tests.test_gelfHandler
