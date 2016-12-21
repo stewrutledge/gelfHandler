@@ -1,6 +1,6 @@
 import logging
 from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM, getfqdn
-from ssl import *
+import ssl
 from json import dumps
 from zlib import compress
 
@@ -55,7 +55,7 @@ class GelfHandler(logging.Handler):
             self.port = 12201
         self.sock = socket(AF_INET, SOCK_STREAM)
         if self.tls:
-            self.sock = wrap_socket(self.sock, ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE)
+            self.sock = ssl.wrap_socket(self.sock, ssl_version=ssl.PROTOCOL_TLSv1, cert_reqs=ssl.CERT_NONE)
         try:
             self.sock.connect((self.host, int(self.port)))
         except IOError as e:
