@@ -1,6 +1,6 @@
-# gelfHandler
+# GelfHandler
 
-gelfHandler is a basic logging handler for sending to a graylog2 instance via UDP or TCP
+GelfHandler is a basic logging handler for sending to a graylog2 instance via UDP or TCP
 
 ## Basic usage
 
@@ -9,22 +9,28 @@ Install via pip:
 `pip install gelfHandler`
 
 ```python
-from gelfHandler import gelfHandler
+from gelfHandler import GelfHandler
+import logging
 
-gHandler = gelfHandler(host='mylogserver.example.com',port=12202,proto='UDP')
-logger.addHandler(gHandler)
-logger.warn("Something went wrong")
+logger = logging.getLogger()
+gelfHandler = GelfHandler(
+    host='mylogserver.example.com',
+    port=12202,
+    protocol='UDP'
+)
+logger.addHandler(gelfHandler)
+logger.warning("Something went wrong")
 ```
 
 There are four additional arguments:
 
-`fromHost='myhost'` which is the hostname field sent to graylog2 (default fqdn)
+`from_host='myhost'` which is the hostname field sent to graylog2 (default fqdn)
 
 `facility='superlogger'` which is sent as the facility field in graylog2 (default is the loggers name)
 
-`fullInfo=True` which sends the module the message came in, the pid of the process and the process name with the message
+`full_info=True` which sends the module the message came in, the pid of the process and the process name with the message
 
-`tls=False` which enables TLS (ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE) for TCP connections
+`tls=False` which enables TLS (`ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE`) for TCP connections
 
 The only protocols supports are UDP and TCP
 
@@ -32,7 +38,15 @@ To send additional fields to graylog2, use the keyword extra and send a dict sta
 
 
 ```python
-    logger.warn('DANGER DANGER',extra={'gelfProps':{'name':'W. Robinsson', 'planet':'Unkown'}})
+    logger.warn(
+        'DANGER DANGER',
+        extra={
+            'gelf_props': {
+                'name':'W. Robinsson',
+                'planet':'Unkown'
+            }
+        }
+    )
 ```
 
 ## Fallbacks
