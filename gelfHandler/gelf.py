@@ -1,7 +1,6 @@
-
 import logging
 from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM, getfqdn
-import ssl
+from ssl import *
 from json import dumps
 from zlib import compress
 
@@ -39,6 +38,7 @@ class GelfHandler(logging.Handler):
         self.facility = kw.get('facility', None)
         self.from_host = kw.get('from_host', getfqdn())
         self.tls = kw.get('tls', False)
+        self.application = kw.get('application', None)
         if self.protocol.lower() == 'udp':
             self._connect_udp_socket()
         if self.protocol.lower() == 'tcp':
@@ -55,11 +55,7 @@ class GelfHandler(logging.Handler):
             self.port = 12201
         self.sock = socket(AF_INET, SOCK_STREAM)
         if self.tls:
-            self.sock = ssl.wrap_socket(
-                self.sock,
-                ssl_version=ssl.PROTOCOL_TLSv1,
-                cert_reqs=ssl.CERT_NONE
-            )
+            self.sock = wrap_socket(self.sock, ssl_version=PROTOCOL_TLSv1, cert_reqs=CERT_NONE)
         try:
             self.sock.connect((self.host, int(self.port)))
         except IOError as e:
@@ -71,6 +67,7 @@ class GelfHandler(logging.Handler):
             'INFO': 6,
             'DEBUG': 7,
             'ERROR': 3,
+            'CRITICAL': 9
         }
         try:
             return(levelsDict[level])
@@ -86,6 +83,8 @@ class GelfHandler(logging.Handler):
         msg_dict['long_message'] = record_dict['msg']
         msg_dict['short_message'] = record_dict['msg']
         msg_dict['host'] = self.from_host
+        if self.application:
+            msgDict['application'] = recordDict['application']
         if self.full_info is True:
             msg_dict['pid'] = record_dict['process']
             msg_dict['processName'] = record_dict['processName']
@@ -99,6 +98,13 @@ class GelfHandler(logging.Handler):
             for k, v in extra_props.items():
                 msg_dict[k] = v
         return msg_dict
+
+    def formatMessage(self, msgDict):
+        if self.proto == 'UDP':
+            msg = compress(dumps(msgDict))
+        if self.proto == 'TCP':
+            msg = dumps(msgDict) + '\0'
+        return msg
 
     def _emit_tcp(self, msg):
         totalsent = 0
