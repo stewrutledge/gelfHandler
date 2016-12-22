@@ -8,7 +8,7 @@ python:
   - "pypy"
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install mock; fi
-  - pip install coverage
+  - pip install coverage coveralls
 script: coverage run --source=gelfHandler -m unittest tests.test_gelfHandler
 after_success:
     coveralls
