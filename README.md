@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/stewrutledge/gelfHandler.svg?branch=master)](https://travis-ci.org/stewrutledge/gelfHandler)
+[![Coverage Status](https://coveralls.io/repos/github/stewrutledge/gelfHandler/badge.svg)](https://coveralls.io/github/stewrutledge/gelfHandler)
 # GelfHandler
 
 GelfHandler is a basic logging handler for sending to a graylog2 instance via UDP or TCP
